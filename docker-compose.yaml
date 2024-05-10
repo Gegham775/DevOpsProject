@@ -1,0 +1,19 @@
+version: "3"
+services:
+  nginx:
+    build: .
+    ports:
+      - 80:80
+    networks:
+      - my_custom_bridge
+    volumes:
+      - my_custom_volume:/usr/share/nginx/html
+networks:
+  my_custom_bridge:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
+volumes:
+  my_custom_volume:
