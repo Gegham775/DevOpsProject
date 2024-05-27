@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: gegham
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 8092
+        volumeMounts:
+        - name: shared-data
+          mountPath: /var/www/html
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+        - name: nginx-snippets
+          mountPath: /etc/nginx/snippets
+      - name: php-fpm
+        image: php:7.4-fpm
+        volumeMounts:
+        - name: shared-data
+          mountPath: /var/www/html
+      volumes:
+      - name: shared-data
+        persistentVolumeClaim:
+          claimName: wordpress-pvc
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+          items:
+          - key: default.conf
+            path: default.conf
+      - name: nginx-snippets
+        configMap:
+          name: nginx-config
+          items:
+          - key: fastcgi-php.conf
+            path: fastcgi-php.conf
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-pvc
+  namespace: gegham
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
